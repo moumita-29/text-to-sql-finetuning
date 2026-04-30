@@ -1,4 +1,3 @@
-
 import torch
 import re
 from transformers import AutoModelForCausalLM, AutoTokenizer
@@ -9,7 +8,13 @@ MODEL = "Salesforce/codegen-350M-mono"
 ADAPTER = "moumita-29/codegen-sql-qlora"
 
 tokenizer = AutoTokenizer.from_pretrained(ADAPTER)
-base_model = AutoModelForCausalLM.from_pretrained(MODEL, torch_dtype=torch.float32)
+tokenizer.pad_token = tokenizer.eos_token
+
+base_model = AutoModelForCausalLM.from_pretrained(
+    MODEL,
+    torch_dtype=torch.float32,
+    low_cpu_mem_usage=True,
+)
 model = PeftModel.from_pretrained(base_model, ADAPTER)
 model.eval()
 
@@ -61,7 +66,7 @@ demo = gr.Interface(
     ],
     outputs=gr.Textbox(label="Generated SQL"),
     title="Text-to-SQL Generator",
-    description="Fine-tuned Salesforce/codegen-350M on 20,000 SQL examples using LoRA. BLEU Score: 0.38",
+    description="Fine-tuned Salesforce/codegen-350M on 20,000 SQL examples using LoRA | BLEU: 0.38",
     examples=[
         ["How many employees earn more than 50000?",
          "CREATE TABLE employees (id INT, name TEXT, salary INT, department TEXT)"],
