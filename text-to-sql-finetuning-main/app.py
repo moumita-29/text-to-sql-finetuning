@@ -48,8 +48,11 @@ def generate_sql(question, schema):
             eos_token_id=tokenizer.eos_token_id,
         )
     full = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    raw_sql = full.split("### SQL:")[-1]
-    raw_sql = raw_sql.split("###")[0]
+    parts = full.split("### SQL:")
+    if len(parts) > 1:
+        raw_sql = parts[1].split("###")[0]
+    else:
+        raw_sql = ""
     raw_sql = " ".join(raw_sql.split()).strip()
     return clean_sql(raw_sql)
 
