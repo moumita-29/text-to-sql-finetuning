@@ -19,15 +19,12 @@ model = PeftModel.from_pretrained(base_model, ADAPTER)
 model.eval()
 
 def clean_sql(raw_sql):
-    noise_keywords = ["INTERSECT", "UNION", "EXCEPT", "HAVING", "OFFSET", "GROUP BY"]
-    raw_upper = raw_sql.upper()
-    cut_pos = len(raw_sql)
-    for keyword in noise_keywords:
-        pos = raw_upper.find(keyword)
-        if pos != -1 and pos < cut_pos:
-            cut_pos = pos
-    sql = raw_sql[:cut_pos].strip()
-    sql = re.sub(r"[\s,;)]+$", "", sql)
+    sql = raw_sql.strip()
+    # If the model generated multiple statements or extra text after a semicolon, truncate it
+    if ';' in sql:
+        sql = sql.split(';')[0]
+    # Remove trailing commas or weird characters
+    sql = re.sub(r"[\s,)]+$", "", sql)
     return sql + ";"
 
 def generate_sql(question, schema):
